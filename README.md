@@ -181,6 +181,5 @@ Detailed case study in [`ai-assisted-qa/AI_ASSISTED_QA_REPORT.md`](./ai-assisted
 | **Documentation & Quality** | **5%** | [`README.md`](./README.md), [`FINAL_QA_SUMMARY.md`](./FINAL_QA_SUMMARY.md) | ✅ Complete |
 | **TOTAL** | **100%** | **All Deliverables Verified & Tested** | 💯 **100% Complete** |
 
----
-**Author:** Intern QA Engineer  
+--- 
 **Project Repository:** [Kredily_HRMS_APK](https://github.com/Ashika04Angel/Kredily_HRMS_APK)  
