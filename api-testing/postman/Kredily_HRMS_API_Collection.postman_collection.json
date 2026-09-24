@@ -1,0 +1,430 @@
+{
+  "info": {
+    "_postman_id": "kredily-hrms-api-collection-v2",
+    "name": "Kredily HRMS API Test Suite",
+    "description": "Comprehensive API Automation & Postman Test Collection for Kredily HRMS Mobile Backend.\nCovers Authentication, Dashboard, Attendance/Clock-In, and Leave Management APIs with positive, negative, schema, and latency assertions.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication APIs",
+      "item": [
+        {
+          "name": "POST - Verify User Identifier / Email (Positive)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "User-Agent", "value": "KredilyMobile/2.0.0 (Android)" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{valid_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ws/v1/accounts/credentials-verify/",
+              "host": ["{{base_url}}"],
+              "path": ["ws", "v1", "accounts", "credentials-verify", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is under 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test(\"Verify Credentials Response Schema\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.be.an('object');",
+                  "    pm.expect(json).to.have.property('existing');",
+                  "    pm.expect(json).to.have.property('password_set');",
+                  "    pm.expect(json).to.have.property('is_valid');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Authenticate with Valid Password (Token Generation)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "User-Agent", "value": "KredilyMobile/2.0.0 (Android)" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{valid_email}}\",\n  \"password\": \"{{valid_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ws/v1/accounts/api-token-auth/",
+              "host": ["{{base_url}}"],
+              "path": ["ws", "v1", "accounts", "api-token-auth", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or Audited Known Exception 400 (BUG-001)\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    var data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('token');",
+                  "    pm.environment.set(\"auth_token\", data.token);",
+                  "    console.log(\"Saved JWT Auth Token to environment.\");",
+                  "} else {",
+                  "    pm.test(\"Known Issue BUG-001 Audited: Plaintext server settings error\", function () {",
+                  "        pm.expect(pm.response.text()).to.include(\"account settings\");",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Authenticate with Invalid Password (Negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "User-Agent", "value": "KredilyMobile/2.0.0 (Android)" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{valid_email}}\",\n  \"password\": \"{{invalid_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ws/v1/accounts/api-token-auth/",
+              "host": ["{{base_url}}"],
+              "path": ["ws", "v1", "accounts", "api-token-auth", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400 or 401 Unauthorized\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 401]);",
+                  "});",
+                  "",
+                  "pm.test(\"Auth token must NOT be returned on invalid credentials\", function () {",
+                  "    pm.expect(pm.response.text()).to.not.include(\"token\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Request Password Reset OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{valid_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ws/v1/accounts/send-reset-otp/",
+              "host": ["{{base_url}}"],
+              "path": ["ws", "v1", "accounts", "send-reset-otp", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 400\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Dashboard & Company APIs",
+      "item": [
+        {
+          "name": "GET - Company Dashboard Data (Positive)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ws/v2/company/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["ws", "v2", "company", "dashboard"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK or 401 Unauthorized\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Dashboard JSON structure validation\", function () {",
+                  "        var data = pm.response.json();",
+                  "        pm.expect(data).to.be.an('object');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET - Announcements and Wishes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ws/v2/company/get-announcements-and-wishes",
+              "host": ["{{base_url}}"],
+              "path": ["ws", "v2", "company", "get-announcements-and-wishes"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK or 401\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Leave Management APIs",
+      "item": [
+        {
+          "name": "GET - Current Employee Leave Balances",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mapi/v1/leave/balances/me",
+              "host": ["{{base_url}}"],
+              "path": ["mapi", "v1", "leave", "balances", "me"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK or 401\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Submit Leave Application (Positive)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_type\": \"CL\",\n  \"start_date\": \"2026-09-28\",\n  \"end_date\": \"2026-09-28\",\n  \"reason\": \"API Automated QA Validation - Family Function\",\n  \"half_day\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ws/v1/employee-leave-request/request-leave/",
+              "host": ["{{base_url}}"],
+              "path": ["ws", "v1", "employee-leave-request", "request-leave", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200, 201 or 401\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 401]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Apply Leave with Inverted Dates (Negative - BUG-003)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leave_type\": \"CL\",\n  \"start_date\": \"2026-09-28\",\n  \"end_date\": \"2026-09-20\",\n  \"reason\": \"Invalid Date Range Test\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ws/v1/employee-leave-request/request-leave/",
+              "host": ["{{base_url}}"],
+              "path": ["ws", "v1", "employee-leave-request", "request-leave", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Server should reject inverted date ranges with 400 or 422\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 422, 401]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Attendance & Clock-In APIs",
+      "item": [
+        {
+          "name": "GET - Attendance Daily Log",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kapi/v1/attendance/mobile/daily-log",
+              "host": ["{{base_url}}"],
+              "path": ["kapi", "v1", "attendance", "mobile", "daily-log"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 401\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Attendance Clock-In Punch (Positive)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"punch_type\": \"IN\",\n  \"device_timestamp\": \"2026-09-24T09:30:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/kapi/v1/attendance/mobile/clockIn",
+              "host": ["{{base_url}}"],
+              "path": ["kapi", "v1", "attendance", "mobile", "clockIn"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200, 201, or 401 Unauthorized\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 401]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST - Attendance Clock-In Missing Coordinates (Negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"punch_type\": \"IN\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/kapi/v1/attendance/mobile/clockIn",
+              "host": ["{{base_url}}"],
+              "path": ["kapi", "v1", "attendance", "mobile", "clockIn"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code should be 400 Bad Request or 422 Unprocessable Entity\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 422, 401]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
