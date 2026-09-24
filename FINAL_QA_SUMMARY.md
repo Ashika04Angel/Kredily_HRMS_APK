@@ -1,7 +1,6 @@
 # Kredily HRMS Android Mobile App – Final QA Summary & Audit Report
 
-**Executive Summary Report**  
-**Candidate Position:** Intern QA Engineer  
+**Executive Summary Report**   
 **Target Application:** Kredily HRMS Android Mobile App (`kredily-mobile-v2.apk`)  
 **Package Name:** `com.kredily.mobile` (React Native / Expo / Hermes v98 Architecture)  
 **Test Evaluation Cycle:** 2-Day Comprehensive QA Sprint  
@@ -94,5 +93,4 @@ graph TD
 - [x] **Master Documentation:** Setup and execution guide in [README.md](file:///d:/QA/README.md).
 
 ---
-**Report Sign-off:**  
-*Intern QA Engineer — Kredily HRMS QA Assessment*
+
